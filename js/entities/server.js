@@ -19,6 +19,8 @@ var Server = function(worldReference) {
             mPlayers[mPlayers.length-1].readyState = false;
             mPlayers[mPlayers.length-1].lifes = 3;
             mPlayers[mPlayers.length-1].kills = 0;
+            mPlayers[mPlayers.length-1].x = 0;
+            mPlayers[mPlayers.length-1].y = 0;
             return(mPlayers[mPlayers.length-1].id);
         }
         return "has provocado un problema y no mereces un id";

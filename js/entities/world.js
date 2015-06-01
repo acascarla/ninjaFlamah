@@ -34,20 +34,38 @@ var World = function() {
             mCanRemoveReadySprites = false;
         }
     };
+
+    this.updatePlayersPositions = function(){
+        // TODO
+
+    }
     
     var addBackground = function() {
-        phaser.add.sprite(0, 0, 'sky');
+        phaser.add.tileSprite(0, 0, 800, 600, 'background');
     };
     
     var createGround = function() {
-        mGround = mPlatforms.create(0, phaser.world.height - 64, 'ground');
-        mGround.scale.setTo(2,2);
+        mGround = mPlatforms.create(0, phaser.world.height - 50, 'floor');
+        //mGround.scale.setTo(2,2);
     };
     
     var createLedges = function() {
         // TODO: escenari correcte
-        mLedges.push(mPlatforms.create(400, 400, 'ground'));
-        mLedges.push(mPlatforms.create(-150, 250, 'ground'));
+        mLedges.push(mPlatforms.create(150, 300, 'block1'));
+        mLedges.push(mPlatforms.create(600, 300, 'block1'));
+        mLedges.push(mPlatforms.create(300, 500, 'block1'));
+        mLedges.push(mPlatforms.create(450, 500, 'block1'));
+
+        mLedges.push(mPlatforms.create(0, 150, 'block2'));
+        mLedges.push(mPlatforms.create(0, 450, 'block2'));
+        mLedges.push(mPlatforms.create(700, 150, 'block2'));
+        mLedges.push(mPlatforms.create(700, 450, 'block2'));
+        mLedges.push(mPlatforms.create(350, 200, 'block2'));
+
+
+        mLedges.push(mPlatforms.create(300, 400, 'block4'));
+
+        mLedges.push(mPlatforms.create(200, 250, 'block8'));
     };
     
     var enablePhysics = function() {

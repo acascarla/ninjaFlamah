@@ -10,6 +10,7 @@ var Player = function(worldReference,serverReference) {
     var mReadyState = false;
     var mId = null;
     var mGameStarted = false;
+    var mIsFacingRight = true;
     
     // Public
     this.update = function() {
@@ -21,6 +22,7 @@ var Player = function(worldReference,serverReference) {
             mWorldReference.removeReadySprites();
         }else{
             updateReadyStates();
+            updatePlayersPositions();
             attack();
         }
     };
@@ -52,35 +54,53 @@ var Player = function(worldReference,serverReference) {
         {
             onPressUp();
         }
+
+        if (!mSprite.body.touching.down){
+            if (mIsFacingRight){
+                mSprite.animations.play('jumpRight');
+            }else{
+                mSprite.animations.play('jumpLeft');
+            }
+        }
+    };
+    var updatePlayersPositions = function(){
+        mWorldReference.updatePlayersPositions();
     };
     var attack = function() {
 
     };
     var enablePhysics = function() {        
         phaser.physics.arcade.enable(mSprite);
-        mSprite.body.gravity.y = 300;
+        mSprite.body.gravity.y = 3800;
         mSprite.body.collideWorldBounds = true;    
     };
     
     var onPressLeft = function() {        
-        mSprite.body.velocity.x = -450;
+        mSprite.body.velocity.x = -490;
         mSprite.animations.play('left');
+        mIsFacingRight = false;
     };
     
     var onPressRight = function() {
-        mSprite.body.velocity.x = 450;
+        mSprite.body.velocity.x = 490;
         mSprite.animations.play('right');
+        mIsFacingRight = true;
     };
     
     var onPressUp = function() {
         if(mSprite.body.touching.down) {
-            mSprite.body.velocity.y = -1000;
+            mSprite.body.velocity.y = -1100;
         }
     };
         
     var onNoDirectionPressed = function() {
         mSprite.animations.stop();
-        mSprite.frame = 4;         
+        mSprite.frame = 17;
+        if (mIsFacingRight){
+            mSprite.frame = 17;
+        }else{
+            mSprite.frame = 12;
+        }
     };
     
     var changeReadyState = function(){
@@ -100,9 +120,17 @@ var Player = function(worldReference,serverReference) {
 
     // Constructor
     (function() {
-        mSprite = phaser.add.sprite(32, phaser.world.height - 150, 'dude');    
-        mSprite.animations.add('left', [0, 1, 2, 3], 10, true);
-        mSprite.animations.add('right', [5, 6, 7, 8], 10, true);
+        mSprite = phaser.add.sprite(60, 65, 'player');    
+        mSprite.animations.add('left', [0, 1, 2], 10, true);
+        mSprite.animations.add('right', [3, 4, 5], 10, true);
+        mSprite.animations.add('jumpLeft', [8, 7, 6], 10, true);
+        mSprite.animations.add('jumpRight', [9, 10, 11], 10, true);
+        mSprite.animations.add('attackLeft', [12, 13, 14], 10, true);
+        mSprite.animations.add('attackRight', [17, 16, 15], 10, true);
+        mSprite.animations.add('dieLeft', [18, 19], 10, true);
+        mSprite.animations.add('dieRight', [21, 20], 10, true);
+        mSprite.anchor.setTo(0.5, 0.5);
+        mSprite.scale.setTo(0.7, 0.7);
 
         
         // add keyboard controls
@@ -116,8 +144,7 @@ var Player = function(worldReference,serverReference) {
         space.onDown.add(changeReadyState, this);
 
         enablePhysics();
-        mSprite.body.gravity.y = 2500;
-        
+
         mId = mServerReference.createId();
         console.log(mId);
 
