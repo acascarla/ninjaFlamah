@@ -20,7 +20,9 @@ var Player2 = function(worldReference,serverReference) {
         if (mGameStarted){
             mWorldReference.removeReadySprites();
         }else{
+            sendMyPosition();
             updateReadyStates();
+            updatePlayersPositions();
             attack();
         }
 
@@ -61,8 +63,11 @@ var Player2 = function(worldReference,serverReference) {
             }
         }
     };
+    var sendMyPosition = function(){
+        mServerReference.sendPlayerNewPosition(mId, mSprite.body.position);
+    };
     var updatePlayersPositions = function(){
-        mWorldReference.updatePlayersPositions();
+        mWorldReference.updatePlayersPositions(mServerReference.getPlayers());
     };
     var attack = function() {
 

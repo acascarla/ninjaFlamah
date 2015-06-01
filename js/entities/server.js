@@ -6,7 +6,7 @@ var Server = function(worldReference) {
     
     // Public
     this.update = function() {
-        
+        //console.log("p",mPlayers[0].isFacingRight);
     };
 
     this.createId = function(){
@@ -21,9 +21,10 @@ var Server = function(worldReference) {
             mPlayers[mPlayers.length-1].kills = 0;
             mPlayers[mPlayers.length-1].x = 0;
             mPlayers[mPlayers.length-1].y = 0;
+            mPlayers[mPlayers.length-1].isFacingRight = false;
             return(mPlayers[mPlayers.length-1].id);
         }
-        return "has provocado un problema y no mereces un id";
+        return "has provocado un problema y no mereces un id digno";
     };
 
     this.changeReadyState = function(playerId, readyState){
@@ -45,6 +46,25 @@ var Server = function(worldReference) {
 
     this.getGameStarted = function() {
         return mGameStarted;
+    };
+
+    this.sendPlayerNewPosition = function(playerId, playerPosition, playerFacingRight){
+        mPlayers.forEach(function(player) {
+            if (player.id.valueOf() == playerId.valueOf()){
+                player.x = playerPosition.x;
+                player.y = playerPosition.y;
+                player.isFacingRight = playerFacingRight;
+            }
+        });
+    };
+    this.attack = function(playerId){
+        mPlayers.forEach(function(player) {
+            if (player.id.valueOf() == playerId.valueOf()){
+                // Check if kill someone
+                // if (kill) killed -1 life; killer +1 score;
+                console.log("ataquen");
+            }
+        });
     };
     
     

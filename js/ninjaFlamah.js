@@ -6,10 +6,10 @@ var NinjaFlamah = function() {
     var mPlayers = null;    
     
     this.update = function() {   
-
         for (i = 0; i < mPlayers.length; i++) { 
             mPlayers[i].update();
         }    
+        mServer.update();
     };
     
     this.onPlayerCollideWithStar = function() {
@@ -18,7 +18,6 @@ var NinjaFlamah = function() {
     
     var enablePhysics = function() {
         phaser.physics.startSystem(Phaser.Physics.ARCADE); 
-
     };
         
     (function() {      

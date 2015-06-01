@@ -21,9 +21,11 @@ var Player = function(worldReference,serverReference) {
         if (mGameStarted){
             mWorldReference.removeReadySprites();
         }else{
-            updateReadyStates();
+            sendMyPosition();
             updatePlayersPositions();
-            attack();
+            updateLifes();
+            updateScores();
+            updateReadyStates();
         }
     };
 
@@ -63,11 +65,23 @@ var Player = function(worldReference,serverReference) {
             }
         }
     };
+    var sendMyPosition = function(){
+        mServerReference.sendPlayerNewPosition(mId, mSprite.body.position, mIsFacingRight);
+    };
     var updatePlayersPositions = function(){
-        mWorldReference.updatePlayersPositions();
+        mWorldReference.updatePlayersPositions(mServerReference.getPlayers());
     };
     var attack = function() {
-
+        mServerReference.attack(mId);
+        mWorldReference.attack();
+    };
+    var updateLifes = function() {
+        //mServerReference.attack(mId);
+        //mWorldReference.attack();
+    };
+    var updateScores = function() {
+        //mServerReference.attack(mId);
+        //mWorldReference.attack();
     };
     var enablePhysics = function() {        
         phaser.physics.arcade.enable(mSprite);
@@ -103,13 +117,17 @@ var Player = function(worldReference,serverReference) {
         }
     };
     
-    var changeReadyState = function(){
-        if (mReadyState){
+    var changeReadyStateOrAttack = function(){
+        if(!mGameStarted){ // Si no ha començat el joc faig el canvi del ready state
+            if (mReadyState){
             mReadyState = false;
-        }else{
-            mReadyState = true;
+            }else{
+                mReadyState = true;
+            }
+            mServerReference.changeReadyState(mId,mReadyState);
+        }else{ // Si ja ha començat: la mateixa tecla serveix per atacar
+            attack();
         }
-        mServerReference.changeReadyState(mId,mReadyState);
     };
 
     var updateReadyStates = function(){
@@ -117,7 +135,6 @@ var Player = function(worldReference,serverReference) {
         mWorldReference.setPlayers(serverPlayers);
     };
     
-
     // Constructor
     (function() {
         mSprite = phaser.add.sprite(60, 65, 'player');    
@@ -141,7 +158,7 @@ var Player = function(worldReference,serverReference) {
             right: phaser.input.keyboard.addKey(Phaser.Keyboard.D)
         };
         space = phaser.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
-        space.onDown.add(changeReadyState, this);
+        space.onDown.add(changeReadyStateOrAttack, this);
 
         enablePhysics();
 

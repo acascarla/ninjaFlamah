@@ -35,10 +35,19 @@ var World = function() {
         }
     };
 
-    this.updatePlayersPositions = function(){
+    this.updatePlayersPositions = function(serverPlayers){
         // TODO
+        mPlayers.forEach(function(player) {
+            if (player.id == serverPlayers[mPlayers.indexOf(player)].id) {
+                player.x = serverPlayers[mPlayers.indexOf(player)].x;
+                player.y = serverPlayers[mPlayers.indexOf(player)].y;
+            }
+        });
+    };
 
-    }
+    this.attack = function(){
+        // Pintar el ataque
+    };
     
     var addBackground = function() {
         phaser.add.tileSprite(0, 0, 800, 600, 'background');
@@ -46,7 +55,6 @@ var World = function() {
     
     var createGround = function() {
         mGround = mPlatforms.create(0, phaser.world.height - 50, 'floor');
-        //mGround.scale.setTo(2,2);
     };
     
     var createLedges = function() {
