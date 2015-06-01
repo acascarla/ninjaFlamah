@@ -3,8 +3,9 @@ var World = function() {
     var mGround = null;
     var mLedges = [];    
     // Interface
-    var mReadyStatesContainer = [];
+    var mInterfaceElementsContainer = [];
     var mReadySprite = null;
+    var mCanRemoveReadySprites = true;
     // Players
     var mPlayers = null;
     
@@ -17,6 +18,22 @@ var World = function() {
         mPlayers = playersReference;
         updateReadyStates();
     };
+
+    this.removeReadySprites = function(){
+        if (mCanRemoveReadySprites){
+            mInterfaceElementsContainer.forEach(function(readyState) {
+                phaser.add.tween(readyState.sprite.scale).to({x: 0, y:0}, 500).start();
+                phaser.add.tween(readyState.sprite.position).to({x: 0, y:0}, 700).start();
+                // TODO: Appear lifes and Score sprites
+                mInterfaceElementsContainer.forEach(function(element){
+                    element.lifes.forEach(function(life){
+                        phaser.add.tween(life.scale).to({x: 1, y:1}, 400).start();
+                    });
+                });
+            });
+            mCanRemoveReadySprites = false;
+        }
+    };
     
     var addBackground = function() {
         phaser.add.sprite(0, 0, 'sky');
@@ -28,6 +45,7 @@ var World = function() {
     };
     
     var createLedges = function() {
+        // TODO: escenari correcte
         mLedges.push(mPlatforms.create(400, 400, 'ground'));
         mLedges.push(mPlatforms.create(-150, 250, 'ground'));
     };
@@ -41,25 +59,21 @@ var World = function() {
     };
 
     // INTERFACE
-
      var updateReadyStates = function() { 
+        // TODO: millorar aquest hardcode o fer-ho per 4 players
         mPlayers.forEach(function(player) {  
             if (mPlayers.indexOf(player) == 0) {
                 if (player.readyState == false){
-                    mReadyStatesContainer[0].loadTexture("red");  
-                    console.log("rojo");
+                    mInterfaceElementsContainer[0].sprite.loadTexture("red");  
                 }else{
-                    mReadyStatesContainer[0].loadTexture("green");
-                    console.log("green")
+                    mInterfaceElementsContainer[0].sprite.loadTexture("green");
                 }
             }
             if (mPlayers.indexOf(player) == 1) {
                 if (player.readyState == false){
-                    mReadyStatesContainer[1].loadTexture("red");  
-                    console.log("rojo") 
+                    mInterfaceElementsContainer[1].sprite.loadTexture("red");  
                 }else{
-                    mReadyStatesContainer[1].loadTexture("green");
-                    console.log("green")
+                    mInterfaceElementsContainer[1].sprite.loadTexture("green");
                 }
             }
         });
@@ -67,15 +81,63 @@ var World = function() {
 
     var instantiateInterface = function(){
         mReadySprite = phaser.add.group();
-        mReadyStatesContainer[0] = (mReadySprite.create(15, 15, 'red'));
-        mReadyStatesContainer[1] = (mReadySprite.create(740, 15, 'red'));
+        // Player 1
+        mInterfaceElementsContainer[0] = new Object();
+        mInterfaceElementsContainer[0].sprite = mReadySprite.create(20, 25, 'red');
+        mInterfaceElementsContainer[0].text = phaser.add.text(10, 0, 'Player 1:', { font: '20px Arial', fill: '#FFF' });
+        var lifes = [
+            mReadySprite.create(5, 25, 'heart'),
+            mReadySprite.create(37, 25, 'heart'),
+            mReadySprite.create(69, 25, 'heart')
+        ];
+        lifes.forEach(function(life){
+            life.scale.setTo(0.0);
+        });
+        mInterfaceElementsContainer[0].lifes = lifes;
+        var skulls = [
+            mReadySprite.create(5, 60, 'skull'),
+            mReadySprite.create(5, 90, 'skull'),
+            mReadySprite.create(5, 120, 'skull'),
+            mReadySprite.create(5, 150, 'skull'),
+            mReadySprite.create(5, 180, 'skull'),
+            mReadySprite.create(5, 210, 'skull')
+        ];
+        skulls.forEach(function(skull){
+            skull.scale.setTo(0.0);
+        });
+        mInterfaceElementsContainer[0].kills = skulls;
+        // Player 2
+        mInterfaceElementsContainer[1] = new Object();
+        mInterfaceElementsContainer[1].sprite = mReadySprite.create(730, 25, 'red');
+        mInterfaceElementsContainer[1].text = phaser.add.text(715, 0, 'Player 2:', { font: '20px Arial', fill: '#FFF' });
+        lifes = [
+            mReadySprite.create(700, 25, 'heart'),
+            mReadySprite.create(732, 25, 'heart'),
+            mReadySprite.create(764, 25, 'heart')
+        ];
+        lifes.forEach(function(life){
+            life.scale.setTo(0.0);
+        });
+        mInterfaceElementsContainer[1].lifes = lifes;
+        skulls = [
+            mReadySprite.create(765, 60, 'skull'),
+            mReadySprite.create(765, 90, 'skull'),
+            mReadySprite.create(765, 120, 'skull'),
+            mReadySprite.create(765, 150, 'skull'),
+            mReadySprite.create(765, 180, 'skull'),
+            mReadySprite.create(765, 210, 'skull')
+        ];
+        skulls.forEach(function(skull){
+            skull.scale.setTo(0.0);
+        });
+        mInterfaceElementsContainer[1].kills = skulls;
     };
-
 
     
     // Constructor
     (function() {       
         mPlayers = new Array();  
+        mInterfaceElementsContainer = new Array();
         addBackground();  
         // Create ground group
         mPlatforms = phaser.add.group();
@@ -85,6 +147,5 @@ var World = function() {
 
         // Create interface
         instantiateInterface();
-        updateReadyStates();
     })();
 };

@@ -9,12 +9,30 @@ var Player = function(worldReference,serverReference) {
     var space = null;
     var mReadyState = false;
     var mId = null;
+    var mGameStarted = false;
     
     // Public
     this.update = function() {
+        playerMovement();
+
+        mGameStarted = mServerReference.getGameStarted();
+        // Lògica de joc un cop comença
+        if (mGameStarted){
+            mWorldReference.removeReadySprites();
+        }else{
+            updateReadyStates();
+            attack();
+        }
+    };
+
+    
+    this.registerListener = function(listener) {
+        mListeners.push(listener);
+    }
+    
+    // Private
+    var playerMovement = function() {
         phaser.physics.arcade.collide(mSprite, mWorldPhysicsReference);
-        //phaser.physics.arcade.overlap(mSprite, mStarsReference, onPlayerCollideWithStar, null, this);
-        
         mSprite.body.velocity.x = 0;
 
         if (wasd.left.isDown)
@@ -34,16 +52,10 @@ var Player = function(worldReference,serverReference) {
         {
             onPressUp();
         }
-
-        // Amb servidor això va així i no en el changeReadyState() perque no saps quan ha actualitzat un altre jugador
-        //updateReadyStates();
     };
-    
-    this.registerListener = function(listener) {
-        mListeners.push(listener);
-    }
-    
-    // Private
+    var attack = function() {
+
+    };
     var enablePhysics = function() {        
         phaser.physics.arcade.enable(mSprite);
         mSprite.body.gravity.y = 300;
@@ -71,8 +83,6 @@ var Player = function(worldReference,serverReference) {
         mSprite.frame = 4;         
     };
     
-    
-
     var changeReadyState = function(){
         if (mReadyState){
             mReadyState = false;
@@ -80,7 +90,6 @@ var Player = function(worldReference,serverReference) {
             mReadyState = true;
         }
         mServerReference.changeReadyState(mId,mReadyState);
-        updateReadyStates();
     };
 
     var updateReadyStates = function(){
@@ -88,6 +97,7 @@ var Player = function(worldReference,serverReference) {
         mWorldReference.setPlayers(serverPlayers);
     };
     
+
     // Constructor
     (function() {
         mSprite = phaser.add.sprite(32, phaser.world.height - 150, 'dude');    
@@ -95,18 +105,19 @@ var Player = function(worldReference,serverReference) {
         mSprite.animations.add('right', [5, 6, 7, 8], 10, true);
 
         
+        // add keyboard controls
         mCursor = phaser.input.keyboard.createCursorKeys();
         wasd = {
             up: phaser.input.keyboard.addKey(Phaser.Keyboard.W),
             left: phaser.input.keyboard.addKey(Phaser.Keyboard.A),
             right: phaser.input.keyboard.addKey(Phaser.Keyboard.D)
         };
-        // add keyboard controls
         space = phaser.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
         space.onDown.add(changeReadyState, this);
 
         enablePhysics();
         mSprite.body.gravity.y = 2500;
+        
         mId = mServerReference.createId();
         console.log(mId);
 

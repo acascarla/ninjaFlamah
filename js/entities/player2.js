@@ -10,6 +10,25 @@ var Player2 = function(worldReference,serverReference) {
     
     // Public
     this.update = function() {
+        playerMovement();
+
+        mGameStarted = mServerReference.getGameStarted();
+        // Lògica de joc un cop comença
+        if (mGameStarted){
+            mWorldReference.removeReadySprites();
+        }else{
+            updateReadyStates();
+            attack();
+        }
+
+    };
+    
+    this.registerListener = function(listener) {
+        mListeners.push(listener);
+    }
+    
+    // Private
+    var playerMovement = function(){
         phaser.physics.arcade.collide(mSprite, mWorldPhysicsReference);
         mSprite.body.velocity.x = 0;
 
@@ -31,12 +50,10 @@ var Player2 = function(worldReference,serverReference) {
             onPressUp();
         }
     };
-    
-    this.registerListener = function(listener) {
-        mListeners.push(listener);
-    }
-    
-    // Private
+    var attack = function() {
+
+    };
+
     var enablePhysics = function() {        
         phaser.physics.arcade.enable(mSprite);
         mSprite.body.gravity.y = 300;
@@ -70,9 +87,7 @@ var Player2 = function(worldReference,serverReference) {
         }else{
             mReadyState = true;
         }
-        console.log("Player 2 ready state: " , mReadyState);
         mServerReference.changeReadyState(mId,mReadyState);
-        updateReadyStates();
     };
 
     var updateReadyStates = function(){
@@ -86,8 +101,9 @@ var Player2 = function(worldReference,serverReference) {
         mSprite.animations.add('left', [0, 1, 2, 3], 10, true);
         mSprite.animations.add('right', [5, 6, 7, 8], 10, true);
         
-        mCursor = phaser.input.keyboard.createCursorKeys();
+        
         // add keyboard controls
+        mCursor = phaser.input.keyboard.createCursorKeys();
         mPKey = phaser.input.keyboard.addKey(Phaser.Keyboard.P);
         mPKey.onDown.add(changeReadyState, this);
 

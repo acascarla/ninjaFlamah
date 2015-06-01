@@ -1,8 +1,8 @@
 var Server = function(worldReference) {
-    //var mPlayersContainer = null;
     var mPlayers = null;
     var mGameStartState = null;
     var mWorld = worldReference;
+    var mGameStarted = false;
     
     // Public
     this.update = function() {
@@ -13,28 +13,36 @@ var Server = function(worldReference) {
         if (mPlayers != null){
             // Crear el nuevo id para el player que lo solicita
             var str1 = "Player";
-            var res = str1.concat(mPlayers.length+1);
+            var id = str1.concat(mPlayers.length+1);
             mPlayers[mPlayers.length] = new Object();
-            mPlayers[mPlayers.length-1].id = res;
+            mPlayers[mPlayers.length-1].id = id;
             mPlayers[mPlayers.length-1].readyState = false;
+            mPlayers[mPlayers.length-1].lifes = 3;
+            mPlayers[mPlayers.length-1].kills = 0;
             return(mPlayers[mPlayers.length-1].id);
-        }else{
-            console.log("error en el registro, cierra app y vuelve a intentar");
         }
-        return "error en el registro, cierra app y vuelve a intentar";
+        return "has provocado un problema y no mereces un id";
     };
 
     this.changeReadyState = function(playerId, readyState){
-        mPlayers.forEach(function(player) {
-            if (player.id.valueOf() == playerId.valueOf()){
-                player.readyState = readyState;
-                console.log("Server: ",player.id," readyState: ", player.readyState);
-            }
-        });
+        if (!mGameStarted){
+            var sum = 0;
+            mPlayers.forEach(function(player) {
+                if (player.id.valueOf() == playerId.valueOf()){
+                    player.readyState = readyState;
+                }
+                if (player.readyState) sum++;
+                if (sum == mPlayers.length) mGameStarted = true;
+            });
+        }
     };
 
     this.getPlayers = function(){
         return mPlayers;
+    };
+
+    this.getGameStarted = function() {
+        return mGameStarted;
     };
     
     

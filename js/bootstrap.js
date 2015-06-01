@@ -11,6 +11,8 @@ var phaser = new Phaser.Game(
             phaser.load.spritesheet('dude', 'assets/dude.png', 32, 48);
             phaser.load.spritesheet('red', 'assets/red.png', 139, 139);
             phaser.load.spritesheet('green', 'assets/green.png', 139, 139);
+            phaser.load.spritesheet('heart', 'assets/heart.png', 139, 139);
+            phaser.load.spritesheet('skull', 'assets/skull.png', 139, 139);
         }, 
         create: function() {
             ninjaFlamah = new NinjaFlamah();
