@@ -76,13 +76,7 @@ var World = function() {
         mLedges.push(mPlatforms.create(200, 250, 'block8'));
     };
     
-    var enablePhysics = function() {
-        phaser.physics.arcade.enable(mPlatforms);
-        mGround.body.immovable = true;
-        mLedges.forEach(function(ledge) {
-            ledge.body.immovable = true;
-        });
-    };
+    
 
     // INTERFACE
      var updateReadyStates = function() { 
@@ -165,11 +159,12 @@ var World = function() {
         mPlayers = new Array();  
         mInterfaceElementsContainer = new Array();
         addBackground();  
-        // Create ground group
+
+        // Create ground group  --->> PASSANTSE A SERVER
         mPlatforms = phaser.add.group();
         createGround();
         createLedges();
-        enablePhysics();
+        //enablePhysics();
 
         // Create interface
         instantiateInterface();
