@@ -26,8 +26,8 @@ var NinjaFlamah = function() {
         mWorld = new World(); 
         mServer = new Server(mWorld);  
         mPlayers = [
-            new Player(mWorld, mServer),
-            new Player(mWorld, mServer)
+            new Player(mWorld, mServer, 1),
+            new Player(mWorld, mServer, 2)
         ];     
         
         for (i = 0; i < mPlayers.length; i++) { 

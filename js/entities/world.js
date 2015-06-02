@@ -9,16 +9,13 @@ var World = function() {
     // Players
     var mPlayers = null;
     
-    
-    this.getPhysicsReference = function() {
-        return mPlatforms;  
+    // Això agafa tota la info del server (recollida pel player i enviada aqui pel mateix) i actualitza tot el world (players, attacks, kills, etc)
+    this.updateThisWorld = function(playersReference){
+        mPlayers = playersReference; // Amb això ja tinc tots els sprites dels players del server
+        updateReadyStates(); // pendent de fer que nomès s'executi quan el joc no hagi començat
     };
 
-    this.setPlayers = function(playersReference){
-        mPlayers = playersReference;
-        updateReadyStates();
-    };
-
+    // Això es cridat pel player quan tots els players estan Ready, fa la transició d'interface a començament del joc
     this.removeReadySprites = function(){
         if (mCanRemoveReadySprites){
             mInterfaceElementsContainer.forEach(function(readyState) {
@@ -34,31 +31,24 @@ var World = function() {
             mCanRemoveReadySprites = false;
         }
     };
-
-    this.updatePlayersPositions = function(serverPlayers){
-        // TODO
-        mPlayers.forEach(function(player) {
-            if (player.id == serverPlayers[mPlayers.indexOf(player)].id) {
-                player.x = serverPlayers[mPlayers.indexOf(player)].x;
-                player.y = serverPlayers[mPlayers.indexOf(player)].y;
-            }
-        });
-    };
-
+    
+        
     this.attack = function(){
         // Pintar el ataque
     };
     
+    // ESCENARI
+    // Aquestes 3 funcions fan el pintat de l'escenari que no te collisions (les fa el server)
     var addBackground = function() {
         phaser.add.tileSprite(0, 0, 800, 600, 'background');
     };
     
     var createGround = function() {
-        mGround = mPlatforms.create(0, phaser.world.height - 50, 'floor');
+        //mGround = mPlatforms.create(0, phaser.world.height - 50, 'floor');
     };
     
     var createLedges = function() {
-        // TODO: escenari correcte
+        /* // Això farà el pintat quan el servidor estigui fora, seran les platforms sense colliders
         mLedges.push(mPlatforms.create(150, 300, 'block1'));
         mLedges.push(mPlatforms.create(600, 300, 'block1'));
         mLedges.push(mPlatforms.create(300, 500, 'block1'));
@@ -74,11 +64,12 @@ var World = function() {
         mLedges.push(mPlatforms.create(300, 400, 'block4'));
 
         mLedges.push(mPlatforms.create(200, 250, 'block8'));
+        */
     };
-    
     
 
     // INTERFACE
+    // Això es modifica segons es fiquen ready o noReady els players fins que comença la partida
      var updateReadyStates = function() { 
         // TODO: millorar aquest hardcode o fer-ho per 4 players
         mPlayers.forEach(function(player) {  
@@ -99,6 +90,13 @@ var World = function() {
         });
     };
 
+    // Pendent Actualitzar les vides conforme les que tingui el player
+
+
+    // Pendent: fer apareixer els sprites de les skulls quan es mati a algú
+    
+
+    // Això crea la interface de primeres i ja està
     var instantiateInterface = function(){
         mReadySprite = phaser.add.group();
         // Player 1
@@ -152,7 +150,6 @@ var World = function() {
         });
         mInterfaceElementsContainer[1].kills = skulls;
     };
-
     
     // Constructor
     (function() {       
@@ -161,10 +158,9 @@ var World = function() {
         addBackground();  
 
         // Create ground group  --->> PASSANTSE A SERVER
-        mPlatforms = phaser.add.group();
-        createGround();
-        createLedges();
-        //enablePhysics();
+        //mPlatforms = phaser.add.group();
+        //createGround();
+        //createLedges();
 
         // Create interface
         instantiateInterface();

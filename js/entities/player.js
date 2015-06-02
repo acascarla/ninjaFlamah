@@ -1,9 +1,7 @@
-var Player = function(worldReference,serverReference) {
+var Player = function(worldReference,serverReference, playerNumber) {
     var mSprite = null;
-    var mWorldPhysicsReference = null;
     var mWorldReference = worldReference;
     var mServerReference = serverReference;
-    var mCursor = null;
     var mListeners = [];
     var wasd = null;
     var space = null;
@@ -11,20 +9,17 @@ var Player = function(worldReference,serverReference) {
     var mId = null;
     var mGameStarted = false;
     var mIsFacingRight = true;
+    var mPlayerNumber = playerNumber;
     
     // Public
     this.update = function() {
         playerMovement();
+        updateThisClient();
 
         mGameStarted = mServerReference.getGameStarted();
-        // Lògica de joc un cop comença
+        // Interface update quan comença el joc
         if (mGameStarted){
             mWorldReference.removeReadySprites();
-        }else{
-            updatePlayersPositions();
-            updateLifes();
-            updateScores();
-            updateReadyStates();
         }
     };
 
@@ -35,7 +30,6 @@ var Player = function(worldReference,serverReference) {
     
     // Private
     var playerMovement = function() {
-
         // Left
         if (wasd.left.isDown){
             mServerReference.onPressLeft(mId,true);
@@ -58,29 +52,10 @@ var Player = function(worldReference,serverReference) {
         {
             mServerReference.onPressUp(mId,false);
         }
-/*
-        if (!mSprite.body.touching.down){
-            if (mIsFacingRight){
-                mSprite.animations.play('jumpRight');
-            }else{
-                mSprite.animations.play('jumpLeft');
-            }
-        }*/
     };
-    var updatePlayersPositions = function(){
-        mWorldReference.updatePlayersPositions(mServerReference.getPlayers());
-    };
-    var attack = function() {
-        mServerReference.attack(mId);
-        mWorldReference.attack();
-    };
-    var updateLifes = function() {
-        //mServerReference.attack(mId);
-        //mWorldReference.attack();
-    };
-    var updateScores = function() {
-        //mServerReference.attack(mId);
-        //mWorldReference.attack();
+
+    var updateThisClient = function(){
+        mWorldReference.updateThisWorld(mServerReference.getPlayers());
     };
    
     
@@ -93,33 +68,32 @@ var Player = function(worldReference,serverReference) {
             }
             mServerReference.changeReadyState(mId,mReadyState);
         }else{ // Si ja ha començat: la mateixa tecla serveix per atacar
-            attack();
+            mServerReference.attack(mId);
         }
-    };
-
-    var updateReadyStates = function(){
-        var serverPlayers = mServerReference.getPlayers();
-        mWorldReference.setPlayers(serverPlayers);
     };
     
     // Constructor
     (function() {
-        
-        // add keyboard controls
-        mCursor = phaser.input.keyboard.createCursorKeys();
-        wasd = {
-            up: phaser.input.keyboard.addKey(Phaser.Keyboard.W),
-            left: phaser.input.keyboard.addKey(Phaser.Keyboard.A),
-            right: phaser.input.keyboard.addKey(Phaser.Keyboard.D)
-        };
-        space = phaser.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
-        space.onDown.add(changeReadyStateOrAttack, this);
+        if (mPlayerNumber == 1){
+            // add keyboard controls
+            wasd = {
+                up: phaser.input.keyboard.addKey(Phaser.Keyboard.W),
+                left: phaser.input.keyboard.addKey(Phaser.Keyboard.A),
+                right: phaser.input.keyboard.addKey(Phaser.Keyboard.D)
+            };
+            space = phaser.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            space.onDown.add(changeReadyStateOrAttack, this);
+        }else if(mPlayerNumber == 2){
+            wasd = {
+                up: phaser.input.keyboard.addKey(Phaser.Keyboard.UP),
+                left: phaser.input.keyboard.addKey(Phaser.Keyboard.LEFT),
+                right: phaser.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
+            };
+            space = phaser.input.keyboard.addKey(Phaser.Keyboard.P);
+            space.onDown.add(changeReadyStateOrAttack, this);
+        }
 
         mId = mServerReference.createId(mSprite);
         console.log(mId);
-
-        mWorldPhysicsReference = mWorldReference.getPhysicsReference();
-
-
     })();
 };
