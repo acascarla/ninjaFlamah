@@ -8,6 +8,10 @@ var World = function() {
     var mCanRemoveReadySprites = true;
     // Players
     var mPlayers = null;
+
+    //auxiliar
+    var mGameFinished = false;
+    var mMustDrawFinishInterface = true;
     
     // Això agafa tota la info del server (recollida pel player i enviada aqui pel mateix) i actualitza tot el world (players, attacks, kills, etc)
     this.updateThisWorld = function(playersReference){
@@ -89,41 +93,93 @@ var World = function() {
     // Pendent Actualitzar les vides conforme les que tingui el player
     var updateInterface = function(){
         mPlayers.forEach(function(player) {  
-            if (mPlayers.indexOf(player) == 0) {
-                //LIFES
-                if (player.lifes < mInterfaceElementsContainer[0].lifes.length){
-                    console.log("P1Lifes=",player.lifes," - InterfaceLifes=",mInterfaceElementsContainer[0].lifes);
-                    mInterfaceElementsContainer[0].lifes[mInterfaceElementsContainer[0].lifes.length-1].scale.setTo(0.0);
-                    mInterfaceElementsContainer[0].lifes.pop();
-                }
-                //KILLS
-                if (player.kills > player.killsInterfaceUpdated){
-                    mInterfaceElementsContainer[0].kills[0].scale.setTo(1.1);
-                    mInterfaceElementsContainer[0].kills.splice(0,1);
-                    player.killsInterfaceUpdated++;
-                }
-            }
-            if (mPlayers.indexOf(player) == 1) {
-                if (player.lifes < mInterfaceElementsContainer[1].lifes.length){
+            if (!mGameFinished){
+                if (mPlayers.indexOf(player) == 0) {
                     //LIFES
-                    mInterfaceElementsContainer[1].lifes[mInterfaceElementsContainer[1].lifes.length-1].scale.setTo(0.0);
-                    mInterfaceElementsContainer[1].lifes.pop();
+                    if (player.lifes < mInterfaceElementsContainer[0].lifes.length){
+                        mInterfaceElementsContainer[0].lifes[mInterfaceElementsContainer[0].lifes.length-1].scale.setTo(0.0);
+                        mInterfaceElementsContainer[0].lifes.pop();
+                    }
+                    //KILLS
+                    if (player.kills > player.killsInterfaceUpdated){
+                        mInterfaceElementsContainer[0].kills[player.kills-1].scale.setTo(1.1);
+                        //mInterfaceElementsContainer[0].kills.splice(0,1);
+                        player.killsInterfaceUpdated++;
+                    }
+                    // end game
+                    if (player.gameIsFinished) mGameFinished = true;
                 }
-                //KILLS
-                if (player.kills > player.killsInterfaceUpdated){
-                    mInterfaceElementsContainer[1].kills[0].scale.setTo(1.1);
-                    mInterfaceElementsContainer[1].kills.splice(0,1);
-                    player.killsInterfaceUpdated++;
+                if (mPlayers.indexOf(player) == 1) {
+                    if (player.lifes < mInterfaceElementsContainer[1].lifes.length){
+                        //LIFES
+                        mInterfaceElementsContainer[1].lifes[mInterfaceElementsContainer[1].lifes.length-1].scale.setTo(0.0);
+                        mInterfaceElementsContainer[1].lifes.pop();
+                    }
+                    //KILLS
+                    if (player.kills > player.killsInterfaceUpdated){
+                        mInterfaceElementsContainer[1].kills[player.kills-1].scale.setTo(1.1);
+                        //mInterfaceElementsContainer[1].kills.splice(0,1);
+                        player.killsInterfaceUpdated++;
+                    }
+                    // end game
+                    if (player.gameIsFinished) mGameFinished = true;
+                }
+            }else{ // Si s'ha acavat el joc perque han matat a algú 3 cops -> Mostro la interface de win lose
+                if (mMustDrawFinishInterface){
+                    mInterfaceElementsContainer[0].replayButton = phaser.add.button(phaser.width/2-75, phaser.height/2-200, 'replayButton', replayButtonClick, this);
+                    mInterfaceElementsContainer[0].backButton = phaser.add.button(phaser.width/2-75, phaser.height/2+20, 'backButton', backButtonClick, this);
+                    mMustDrawFinishInterface = false;
                 }
             }
         });
     };
 
-    // Pendent: fer apareixer els sprites de les skulls quan es mati a algú
+    var replayButtonClick = function(){
+        // Restart the game
+        // Notificar al server
+
+        // Update interface
+        resetInterface();
+    };
+    var backButtonClick = function(){
+        console.log("click back");
+    };
+
+    var resetInterface = function(){
+        // Change property "resetGame" to true to make know to the server that player has clicked reset
+        mPlayers.forEach(function(player){ // Això quan estigui amb el server de veritat es fara nomes per 1 player, el del client
+            player.resetGame = true;
+        });
+
+        // Hide existing
+        //lives
+        mInterfaceElementsContainer[0].lifes.forEach(function(life){
+            life.scale.setTo(0.0);
+        });
+        mInterfaceElementsContainer[1].lifes.forEach(function(life){
+            life.scale.setTo(0.0);
+        });
+        //kills
+        mInterfaceElementsContainer[0].kills.forEach(function(skull){
+            skull.scale.setTo(0.0);
+        })
+        mInterfaceElementsContainer[1].kills.forEach(function(skull){
+            skull.scale.setTo(0.0);
+        })
+        // Buttons
+        mInterfaceElementsContainer[0].replayButton.scale.setTo(0.0);
+        mInterfaceElementsContainer[0].backButton.scale.setTo(0.0);
+
+        // Reset initial interface
+        instantiateInterface();
+    }
+
+
     
 
-    // Això crea la interface de primeres i ja està
+    // Això crea la interface de primeres
     var instantiateInterface = function(){
+        // Això esta per dos players, amb el server haurà d'estar per 1 sol player
         mReadySprite = phaser.add.group();
         // Player 1
         mInterfaceElementsContainer[0] = new Object();
@@ -150,6 +206,7 @@ var World = function() {
             skull.scale.setTo(0.0);
         });
         mInterfaceElementsContainer[0].kills = skulls;
+
         // Player 2
         mInterfaceElementsContainer[1] = new Object();
         mInterfaceElementsContainer[1].sprite = mReadySprite.create(730, 25, 'red');

@@ -12,6 +12,7 @@ var Server = function(worldReference) {
 
     // auxiliar
     var mCanPlayDieAnimation = true; // nomes pot morir 1 a la vegada, no hi ha double kill
+    var mResetGameCalled = false;
     
     // Public
     this.update = function() {
@@ -24,6 +25,8 @@ var Server = function(worldReference) {
             }else{
                 // Finish game
                 finishGame();
+                // Check if a player calls for resetGame
+                resetGameCalled();
             }
         });
     };
@@ -49,6 +52,7 @@ var Server = function(worldReference) {
             mPlayers[mPlayers.length-1].gameIsFinished = false;
             mPlayers[mPlayers.length-1].isAbleToMove = true;
             mPlayers[mPlayers.length-1].killedAt = null;
+            mPlayers[mPlayers.length-1].resetGame = false;
             
             // Sprite config
             mPlayers[mPlayers.length-1].sprite = mSprite;
@@ -91,6 +95,7 @@ var Server = function(worldReference) {
     this.attack = function(playerId){
         mPlayers.forEach(function(player) {
             if (player.id.valueOf() == playerId.valueOf()){
+                console.log(mGameFinished);
                 if (player.isAbleToMove && !mGameFinished){
                     if (player.isFacingRight){
                         player.sprite.animations.play('attackRight');
@@ -129,6 +134,7 @@ var Server = function(worldReference) {
             }
         });
     };
+
 
     // Private
     var playerControl = function(player){
@@ -211,7 +217,6 @@ var Server = function(worldReference) {
     };
 
     var onPlayerOverlap = function(player1, player2) {
-        console.log("p1:",mPlayers[0].isAbleToMove," - p2:",mPlayers[1].isAbleToMove);
         if (player1.justAttacked && mPlayers[1].isAbleToMove){
             if ((mPlayers[0].isFacingRight && player1.position.x < player2.position.x) || (!mPlayers[0].isFacingRight && player1.position.x > player2.position.x)){
                 killSomeOne(mPlayers[0], mPlayers[1]);
@@ -277,6 +282,43 @@ var Server = function(worldReference) {
         mSprite.animations.add('dieRight', [21, 20], 3, false, true);
         mSprite.anchor.setTo(0.5, 0.5);
         mSprite.scale.setTo(0.7, 0.7);
+    };
+
+    // Reset player values when reset is called
+    var resetGameCalled = function(){
+        mPlayers.forEach(function(player){
+            if (player.resetGame) mResetGameCalled = true;
+        })
+        if (mResetGameCalled){
+            mPlayers.forEach(function(player){
+                player.readyState = false;
+                player.lifes = 3;
+                player.kills = 0;
+                player.isFacingRight = true;
+                player.isMovingRight = false;
+                player.isMovingLeft = false;
+                player.isMovingUp = false;
+                player.attackStartedAt = null;
+                player.killsInterfaceUpdated = 0;
+                player.gameIsFinished = false;
+                player.isAbleToMove = true;
+                player.killedAt = null;
+                player.resetGame = false;
+                
+                // Sprite config
+                if (mPlayers.indexOf(player) == 0) {
+                    player.sprite.position.x = 60;
+                }else if(mPlayers.length == 1){
+                    player.sprite.position.x = 740;
+                    player.isFacingRight = false;
+                }
+                player.sprite.justAttacked = false;
+            });  
+            mGameStarted = false;
+            mGameFinished = false;
+            mCanPlayDieAnimation = true;
+            mResetGameCalled = false;
+        }
     };
     
     // Constructor

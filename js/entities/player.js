@@ -8,7 +8,6 @@ var Player = function(worldReference,serverReference, playerNumber) {
     var mReadyState = false;
     var mId = null;
     var mGameStarted = false;
-    var mIsFacingRight = true;
     var mPlayerNumber = playerNumber;
     
     // Public
@@ -20,7 +19,10 @@ var Player = function(worldReference,serverReference, playerNumber) {
         // Interface update quan comença el joc
         if (mGameStarted){
             mWorldReference.removeReadySprites();
+            mReadyState=false;
         }
+
+        
     };
 
     
@@ -66,6 +68,7 @@ var Player = function(worldReference,serverReference, playerNumber) {
             }else{
                 mReadyState = true;
             }
+            console.log("mReadyState:", mReadyState);
             mServerReference.changeReadyState(mId,mReadyState);
         }else{ // Si ja ha començat: la mateixa tecla serveix per atacar
             mServerReference.attack(mId);

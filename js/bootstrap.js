@@ -14,10 +14,12 @@ var phaser = new Phaser.Game(
             phaser.load.image('block8', 'assets/octupleBlock.png');
             phaser.load.spritesheet('dude', 'assets/dude.png', 32, 48);
             phaser.load.spritesheet('player', 'assets/sprite/player.png', 60, 65);
-            phaser.load.spritesheet('red', 'assets/red.png', 139, 139);
-            phaser.load.spritesheet('green', 'assets/green.png', 139, 139);
-            phaser.load.spritesheet('heart', 'assets/heart.png', 139, 139);
-            phaser.load.spritesheet('skull', 'assets/skull.png', 139, 139);
+            phaser.load.image('red', 'assets/red.png');
+            phaser.load.image('green', 'assets/green.png');
+            phaser.load.image('heart', 'assets/heart.png');
+            phaser.load.image('skull', 'assets/skull.png');
+            phaser.load.image('replayButton', 'assets/buttons/replayButton.png');
+            phaser.load.image('backButton', 'assets/buttons/backButton.png');
         }, 
         create: function() {
             ninjaFlamah = new NinjaFlamah();
