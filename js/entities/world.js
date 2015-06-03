@@ -12,7 +12,8 @@ var World = function() {
     // Això agafa tota la info del server (recollida pel player i enviada aqui pel mateix) i actualitza tot el world (players, attacks, kills, etc)
     this.updateThisWorld = function(playersReference){
         mPlayers = playersReference; // Amb això ja tinc tots els sprites dels players del server
-        updateReadyStates(); // pendent de fer que nomès s'executi quan el joc no hagi començat
+        updateReadyStates(); // TODO: de fer que nomès s'executi quan el joc no hagi començat
+        updateInterface(); // TODO: unificar el de adalt amb aquest
     };
 
     // Això es cridat pel player quan tots els players estan Ready, fa la transició d'interface a començament del joc
@@ -30,11 +31,6 @@ var World = function() {
             });
             mCanRemoveReadySprites = false;
         }
-    };
-    
-        
-    this.attack = function(){
-        // Pintar el ataque
     };
     
     // ESCENARI
@@ -91,7 +87,37 @@ var World = function() {
     };
 
     // Pendent Actualitzar les vides conforme les que tingui el player
-
+    var updateInterface = function(){
+        mPlayers.forEach(function(player) {  
+            if (mPlayers.indexOf(player) == 0) {
+                //LIFES
+                if (player.lifes < mInterfaceElementsContainer[0].lifes.length){
+                    console.log("P1Lifes=",player.lifes," - InterfaceLifes=",mInterfaceElementsContainer[0].lifes);
+                    mInterfaceElementsContainer[0].lifes[mInterfaceElementsContainer[0].lifes.length-1].scale.setTo(0.0);
+                    mInterfaceElementsContainer[0].lifes.pop();
+                }
+                //KILLS
+                if (player.kills > player.killsInterfaceUpdated){
+                    mInterfaceElementsContainer[0].kills[0].scale.setTo(1.1);
+                    mInterfaceElementsContainer[0].kills.splice(0,1);
+                    player.killsInterfaceUpdated++;
+                }
+            }
+            if (mPlayers.indexOf(player) == 1) {
+                if (player.lifes < mInterfaceElementsContainer[1].lifes.length){
+                    //LIFES
+                    mInterfaceElementsContainer[1].lifes[mInterfaceElementsContainer[1].lifes.length-1].scale.setTo(0.0);
+                    mInterfaceElementsContainer[1].lifes.pop();
+                }
+                //KILLS
+                if (player.kills > player.killsInterfaceUpdated){
+                    mInterfaceElementsContainer[1].kills[0].scale.setTo(1.1);
+                    mInterfaceElementsContainer[1].kills.splice(0,1);
+                    player.killsInterfaceUpdated++;
+                }
+            }
+        });
+    };
 
     // Pendent: fer apareixer els sprites de les skulls quan es mati a algú
     
@@ -129,9 +155,9 @@ var World = function() {
         mInterfaceElementsContainer[1].sprite = mReadySprite.create(730, 25, 'red');
         mInterfaceElementsContainer[1].text = phaser.add.text(715, 0, 'Player 2:', { font: '20px Arial', fill: '#FFF' });
         lifes = [
-            mReadySprite.create(700, 25, 'heart'),
+            mReadySprite.create(764, 25, 'heart'),
             mReadySprite.create(732, 25, 'heart'),
-            mReadySprite.create(764, 25, 'heart')
+            mReadySprite.create(700, 25, 'heart')
         ];
         lifes.forEach(function(life){
             life.scale.setTo(0.0);

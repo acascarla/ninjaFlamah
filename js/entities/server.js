@@ -3,42 +3,27 @@ var Server = function(worldReference) {
     var mGameStartState = null;
     var mWorld = worldReference;
     var mGameStarted = false;
+    var mGameFinished = false;
     // colliders
     var mPlatforms = null;
     var mGround = null;
     var mLedges = [];  
     var mSprite = null; 
+
+    // auxiliar
+    var mCanPlayDieAnimation = true; // nomes pot morir 1 a la vegada, no hi ha double kill
     
     // Public
     this.update = function() {
         phaser.physics.arcade.overlap(mPlayers[0].sprite, mPlayers[1].sprite, onPlayerOverlap, null, this);
-
         mPlayers.forEach(function(player) {
             player.sprite.body.velocity.x = 0;
             phaser.physics.arcade.collide(player.sprite, mPlatforms);
-            if (player.isMovingLeft){
-                player.sprite.body.velocity.x = -490;
-                if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('left');
-                player.isFacingRight = false;
-            }else if(player.isMovingRight){
-                player.sprite.body.velocity.x = 490;
-                if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('right');
-                player.isFacingRight = true;
+            if (!mGameFinished){
+                playerControl(player);
             }else{
-                if (phaser.time.now - player.attackStartedAt > 100) onNoDirectionPressed(player);
-            }
-            if (player.isMovingUp){
-                if(player.sprite.body.touching.down) {
-                    player.sprite.body.velocity.y = -1100;
-                    player.isMovingUp = false;
-                }
-            }
-            if (!player.sprite.body.touching.down){
-                if (player.isFacingRight){
-                    if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('jumpRight');
-                }else{
-                    if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('jumpLeft');
-                }
+                // Finish game
+                finishGame();
             }
         });
     };
@@ -60,6 +45,11 @@ var Server = function(worldReference) {
             mPlayers[mPlayers.length-1].isMovingLeft = false;
             mPlayers[mPlayers.length-1].isMovingUp = false;
             mPlayers[mPlayers.length-1].attackStartedAt = null;
+            mPlayers[mPlayers.length-1].killsInterfaceUpdated = 0;
+            mPlayers[mPlayers.length-1].gameIsFinished = false;
+            mPlayers[mPlayers.length-1].isAbleToMove = true;
+            mPlayers[mPlayers.length-1].killedAt = null;
+            
             // Sprite config
             mPlayers[mPlayers.length-1].sprite = mSprite;
             phaser.physics.arcade.enable(mPlayers[mPlayers.length-1].sprite);
@@ -101,14 +91,16 @@ var Server = function(worldReference) {
     this.attack = function(playerId){
         mPlayers.forEach(function(player) {
             if (player.id.valueOf() == playerId.valueOf()){
-                if (player.isFacingRight){
-                    player.sprite.animations.play('attackRight');
-                    player.attackStartedAt = phaser.time.now;
-                }else if(!player.isFacingRight){
-                    player.sprite.animations.play('attackLeft');
-                    player.attackStartedAt = phaser.time.now;
+                if (player.isAbleToMove && !mGameFinished){
+                    if (player.isFacingRight){
+                        player.sprite.animations.play('attackRight');
+                        player.attackStartedAt = phaser.time.now;
+                    }else if(!player.isFacingRight){
+                        player.sprite.animations.play('attackLeft');
+                        player.attackStartedAt = phaser.time.now;
+                    }
+                    player.sprite.justAttacked = true;
                 }
-                player.sprite.justAttacked = true;
             }
         });
     };
@@ -137,7 +129,77 @@ var Server = function(worldReference) {
             }
         });
     };
+
     // Private
+    var playerControl = function(player){
+        if (player.isAbleToMove){
+            if (player.isMovingLeft){
+                player.sprite.body.velocity.x = -490;
+                if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('left');
+                player.isFacingRight = false;
+            }else if(player.isMovingRight){
+                player.sprite.body.velocity.x = 490;
+                if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('right');
+                player.isFacingRight = true;
+            }else{
+                if (phaser.time.now - player.attackStartedAt > 100) onNoDirectionPressed(player);
+            }
+            if (player.isMovingUp){
+                if(player.sprite.body.touching.down) {
+                    player.sprite.body.velocity.y = -1100;
+                    player.isMovingUp = false;
+                }
+            }
+            if (!player.sprite.body.touching.down){
+                if (player.isFacingRight){
+                    if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('jumpRight');
+                }else{
+                    if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('jumpLeft');
+                }
+            }
+        }else{
+            if (phaser.time.now - player.killedAt < 1000){
+                if (mCanPlayDieAnimation){ 
+                    if (player.isFacingRight) player.sprite.animations.play('dieRight');
+                    if (!player.isFacingRight) player.sprite.animations.play('dieLeft');
+                    mCanPlayDieAnimation = false;
+                }
+            } else {
+                player.isAbleToMove = true;
+                mCanPlayDieAnimation = true;
+                // Respawn at start location
+                if (player.id.valueOf() == "Player1") {
+                    player.sprite.position.x = 40;
+                    player.isFacingRight = true;
+                }else{
+                    player.sprite.position.x = 740;
+                    player.isFacingRight = false;
+                }
+                player.sprite.position.y = 40;
+            }
+        }
+        
+        //finish attack
+        if (phaser.time.now - player.attackStartedAt > 10){
+            player.sprite.justAttacked = false;
+        }
+    }
+
+    var finishGame = function(){
+        // Show last die animation becouse has not enetered in playerControl
+        mPlayers.forEach(function(player){
+            if (player.lifes == 0){
+                if (phaser.time.now - player.killedAt < 1000){
+                    if (mCanPlayDieAnimation){ 
+                        if (player.isFacingRight) player.sprite.animations.play('dieRight');
+                        if (!player.isFacingRight) player.sprite.animations.play('dieLeft');
+                        mCanPlayDieAnimation = false;
+                    }
+                }
+            }
+        });
+    }
+
     var onNoDirectionPressed = function(player) {
         player.sprite.animations.stop();
         player.sprite.frame = 17;
@@ -149,12 +211,13 @@ var Server = function(worldReference) {
     };
 
     var onPlayerOverlap = function(player1, player2) {
-        if (player1.justAttacked){
+        console.log("p1:",mPlayers[0].isAbleToMove," - p2:",mPlayers[1].isAbleToMove);
+        if (player1.justAttacked && mPlayers[1].isAbleToMove){
             if ((mPlayers[0].isFacingRight && player1.position.x < player2.position.x) || (!mPlayers[0].isFacingRight && player1.position.x > player2.position.x)){
                 killSomeOne(mPlayers[0], mPlayers[1]);
             }
             player1.justAttacked = false;
-        }else if(player2.justAttacked){
+        }else if(player2.justAttacked && mPlayers[0].isAbleToMove){
             if ((mPlayers[1].isFacingRight && player2.position.x < player1.position.x) || (!mPlayers[1].isFacingRight && player2.position.x > player1.position.x)){
                 killSomeOne(mPlayers[1], mPlayers[0]);
             }
@@ -165,7 +228,13 @@ var Server = function(worldReference) {
     var killSomeOne = function(killer, killed){
         killed.lifes--;
         killer.kills++;
-        console.log(mPlayers[1].lifes, " killer kills: ", mPlayers[0].kills);
+        killed.killedAt = phaser.time.now;
+        killed.isAbleToMove = false;
+        if (killed.lifes == 0){
+            mGameFinished = true;
+            killed.gameIsFinished = true;
+            killer.gameIsFinished = true;
+        }
     };
 
 
@@ -204,8 +273,8 @@ var Server = function(worldReference) {
         mSprite.animations.add('jumpRight', [9, 10, 11], 10, true);
         mSprite.animations.add('attackLeft', [12, 13, 14], 30, false, true);
         mSprite.animations.add('attackRight', [17, 16, 15], 30, false, true);
-        mSprite.animations.add('dieLeft', [18, 19], 10, true);
-        mSprite.animations.add('dieRight', [21, 20], 10, true);
+        mSprite.animations.add('dieLeft', [18, 19], 3, false, true);
+        mSprite.animations.add('dieRight', [21, 20], 3, false, true);
         mSprite.anchor.setTo(0.5, 0.5);
         mSprite.scale.setTo(0.7, 0.7);
     };
