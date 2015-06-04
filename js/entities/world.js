@@ -6,12 +6,15 @@ var World = function() {
     var mInterfaceElementsContainer = [];
     var mReadySprite = null;
     var mCanRemoveReadySprites = true;
+    var mMustResetInterface = true;
     // Players
     var mPlayers = null;
 
     //auxiliar
     var mGameFinished = false;
     var mMustDrawFinishInterface = true;
+    var aux = false;
+    var aux2 = false;
     
     // Això agafa tota la info del server (recollida pel player i enviada aqui pel mateix) i actualitza tot el world (players, attacks, kills, etc)
     this.updateThisWorld = function(playersReference){
@@ -36,6 +39,8 @@ var World = function() {
             mCanRemoveReadySprites = false;
         }
     };
+
+
     
     // ESCENARI
     // Aquestes 3 funcions fan el pintat de l'escenari que no te collisions (les fa el server)
@@ -129,6 +134,9 @@ var World = function() {
                     mInterfaceElementsContainer[0].replayButton = phaser.add.button(phaser.width/2-75, phaser.height/2-200, 'replayButton', replayButtonClick, this);
                     mInterfaceElementsContainer[0].backButton = phaser.add.button(phaser.width/2-75, phaser.height/2+20, 'backButton', backButtonClick, this);
                     mMustDrawFinishInterface = false;
+
+       // aux = false;
+        //aux2=false;
                 }
             }
         });
@@ -172,6 +180,12 @@ var World = function() {
 
         // Reset initial interface
         instantiateInterface();
+
+        // Reset local vars
+        mCanRemoveReadySprites = true;
+       // mMustResetInterface = true;
+       // aux = false;
+       // aux2=false;
     }
 
 

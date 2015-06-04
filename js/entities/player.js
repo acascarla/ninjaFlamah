@@ -21,8 +21,6 @@ var Player = function(worldReference,serverReference, playerNumber) {
             mWorldReference.removeReadySprites();
             mReadyState=false;
         }
-
-        
     };
 
     
@@ -68,7 +66,6 @@ var Player = function(worldReference,serverReference, playerNumber) {
             }else{
                 mReadyState = true;
             }
-            console.log("mReadyState:", mReadyState);
             mServerReference.changeReadyState(mId,mReadyState);
         }else{ // Si ja ha començat: la mateixa tecla serveix per atacar
             mServerReference.attack(mId);

@@ -95,7 +95,6 @@ var Server = function(worldReference) {
     this.attack = function(playerId){
         mPlayers.forEach(function(player) {
             if (player.id.valueOf() == playerId.valueOf()){
-                console.log(mGameFinished);
                 if (player.isAbleToMove && !mGameFinished){
                     if (player.isFacingRight){
                         player.sprite.animations.play('attackRight');
@@ -306,12 +305,13 @@ var Server = function(worldReference) {
                 player.resetGame = false;
                 
                 // Sprite config
-                if (mPlayers.indexOf(player) == 0) {
+                if (player.id == "Player1") {
                     player.sprite.position.x = 60;
-                }else if(mPlayers.length == 1){
+                }else if(player.id == "Player2"){
                     player.sprite.position.x = 740;
                     player.isFacingRight = false;
                 }
+                player.sprite.position.y = 40;
                 player.sprite.justAttacked = false;
             });  
             mGameStarted = false;
