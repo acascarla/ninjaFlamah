@@ -2,7 +2,6 @@ var Player = function(worldReference,serverReference, playerNumber) {
     var mSprite = null;
     var mWorldReference = worldReference;
     var mServerReference = serverReference;
-    var mListeners = [];
     var wasd = null;
     var space = null;
     var mReadyState = false;
@@ -23,11 +22,6 @@ var Player = function(worldReference,serverReference, playerNumber) {
         }
     };
 
-    
-    this.registerListener = function(listener) {
-        mListeners.push(listener);
-    };
-    
     // Private
     var playerMovement = function() {
         // Left

@@ -1,6 +1,32 @@
+/*
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
+var io = require('socket.io').listen(server);
+
+    server.listen(8000);
+
+    app.use(express.static(__dirname + '/app'));
+    app.get('/',function(req,res){
+        res.sendfile(__dirname + 'index.html');
+    });
+
+
+    io.sockets.on('connection', function(socket){
+        console.log("a user connected");
+        socket.on('sendMessage', function(data) {
+            io.socket.emit('sendMessage', {msg: data});
+        });
+
+        socket.on('newUser', function(data, callback) {
+            sockets.emit
+        });
+
+});
+*/
+
 var Server = function(worldReference) {
     var mPlayers = null;
-    var mGameStartState = null;
     var mWorld = worldReference;
     var mGameStarted = false;
     var mGameFinished = false;
@@ -12,6 +38,10 @@ var Server = function(worldReference) {
 
     // auxiliar
     var mCanPlayDieAnimation = true; // nomes pot morir 1 a la vegada, no hi ha double kill
+
+    // semofors
+    var mGameStarted = false;
+    var mGameFinished = false;
     var mResetGameCalled = false;
     
     // Public
@@ -49,6 +79,7 @@ var Server = function(worldReference) {
             mPlayers[mPlayers.length-1].isMovingUp = false;
             mPlayers[mPlayers.length-1].attackStartedAt = null;
             mPlayers[mPlayers.length-1].killsInterfaceUpdated = 0;
+            mPlayers[mPlayers.length-1].lifesInterfaceNextUpdate = 3;
             mPlayers[mPlayers.length-1].gameIsFinished = false;
             mPlayers[mPlayers.length-1].isAbleToMove = true;
             mPlayers[mPlayers.length-1].killedAt = null;
@@ -137,7 +168,7 @@ var Server = function(worldReference) {
 
     // Private
     var playerControl = function(player){
-        if (player.isAbleToMove){
+        if (player.isAbleToMove){ // Moviment normal
             if (player.isMovingLeft){
                 player.sprite.body.velocity.x = -490;
                 if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('left');
@@ -162,7 +193,7 @@ var Server = function(worldReference) {
                     if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('jumpLeft');
                 }
             }
-        }else{
+        }else{ // lógica de quan et maten
             if (phaser.time.now - player.killedAt < 1000){
                 if (mCanPlayDieAnimation){ 
                     if (player.isFacingRight) player.sprite.animations.play('dieRight');
@@ -174,7 +205,7 @@ var Server = function(worldReference) {
                 mCanPlayDieAnimation = true;
                 // Respawn at start location
                 if (player.id.valueOf() == "Player1") {
-                    player.sprite.position.x = 40;
+                    player.sprite.position.x = 60;
                     player.isFacingRight = true;
                 }else{
                     player.sprite.position.x = 740;
@@ -184,7 +215,7 @@ var Server = function(worldReference) {
             }
         }
         
-        //finish attack
+        //finish attack - per saber que l'atack ja s'ha realitzat
         if (phaser.time.now - player.attackStartedAt > 10){
             player.sprite.justAttacked = false;
         }
@@ -203,6 +234,7 @@ var Server = function(worldReference) {
                 }
             }
         });
+        mGameStarted = false;
     }
 
     var onNoDirectionPressed = function(player) {
@@ -320,12 +352,12 @@ var Server = function(worldReference) {
             mResetGameCalled = false;
         }
     };
+
     
     // Constructor
     (function() {
-       gameStartState = false;
+       
        mPlayers = new Array();
-
         // Create ground group
         mPlatforms = phaser.add.group();
         createGround();
