@@ -1,24 +1,30 @@
-var Player = function(worldReference,serverReference, playerNumber) {
+var Player = function(worldReference) {
+    var socket = io();
     var mSprite = null;
     var mWorldReference = worldReference;
-    var mServerReference = serverReference;
     var wasd = null;
     var space = null;
     var mReadyState = false;
     var mId = null;
     var mGameStarted = false;
-    var mPlayerNumber = playerNumber;
+    var mCanUpdate = false;
+
     
     // Public
     this.update = function() {
-        playerMovement();
-        updateThisClient();
+        if (mCanUpdate && mId != null && mId != 'spectator'){
+            //1. Recoger los inputs
+            playerMovement();
+            //2. Mandar inputs, recoger la información del servidor y actualizar lo que vemos
+            mWorldReference.updateThisWorld();
+            //3. Control de si el juego ha empezado o no
+            mGameStarted = mWorldReference.getGameStarted();
 
-        mGameStarted = mServerReference.getGameStarted();
-        // Interface update quan comença el joc
-        if (mGameStarted){
-            mWorldReference.removeReadySprites();
-            mReadyState=false;
+            // Interface update quan comença el joc
+            if (mGameStarted){
+                mWorldReference.removeReadySprites();
+                mReadyState=false;
+            }
         }
     };
 
@@ -26,31 +32,34 @@ var Player = function(worldReference,serverReference, playerNumber) {
     var playerMovement = function() {
         // Left
         if (wasd.left.isDown){
-            mServerReference.onPressLeft(mId,true);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.onPressLeft(true);
         }else if(!wasd.left.isDown){
-            mServerReference.onPressLeft(mId,false);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.onPressLeft(false);
         }
         // Right
         if (wasd.right.isDown){
-            mServerReference.onPressRight(mId,true);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.onPressRight(true);
         }
         else if (!wasd.right.isDown)
         {
-            mServerReference.onPressRight(mId,false);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.onPressRight(false);
         }
         // Up
         if (wasd.up.isDown)
         {
-            mServerReference.onPressUp(mId,true);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.onPressUp(true);
         }else if (!wasd.up.isDown)
         {
-            mServerReference.onPressUp(mId,false);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.onPressUp(false);
         }
     };
 
-    var updateThisClient = function(){
-        mWorldReference.updateThisWorld(mServerReference.getPlayers());
-    };
    
     
     var changeReadyStateOrAttack = function(){
@@ -60,34 +69,41 @@ var Player = function(worldReference,serverReference, playerNumber) {
             }else{
                 mReadyState = true;
             }
-            mServerReference.changeReadyState(mId,mReadyState);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.changeReadyState(mReadyState);
         }else{ // Si ja ha començat: la mateixa tecla serveix per atacar
-            mServerReference.attack(mId);
+            // ----->> SOCKET CHANGE <<-------
+            mWorldReference.attack();
         }
     };
+
+
     
     // Constructor
     (function() {
-        if (mPlayerNumber == 1){
-            // add keyboard controls
-            wasd = {
-                up: phaser.input.keyboard.addKey(Phaser.Keyboard.W),
-                left: phaser.input.keyboard.addKey(Phaser.Keyboard.A),
-                right: phaser.input.keyboard.addKey(Phaser.Keyboard.D)
-            };
-            space = phaser.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-            space.onDown.add(changeReadyStateOrAttack, this);
-        }else if(mPlayerNumber == 2){
-            wasd = {
-                up: phaser.input.keyboard.addKey(Phaser.Keyboard.UP),
-                left: phaser.input.keyboard.addKey(Phaser.Keyboard.LEFT),
-                right: phaser.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
-            };
-            space = phaser.input.keyboard.addKey(Phaser.Keyboard.P);
-            space.onDown.add(changeReadyStateOrAttack, this);
-        }
+        wasd = {
+            up: phaser.input.keyboard.addKey(Phaser.Keyboard.W),
+            left: phaser.input.keyboard.addKey(Phaser.Keyboard.A),
+            right: phaser.input.keyboard.addKey(Phaser.Keyboard.D)
+        };
+        space = phaser.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        space.onDown.add(changeReadyStateOrAttack, this);
 
-        mId = mServerReference.createId(mSprite);
-        console.log(mId);
+        // SOCKET LISTENERS
+        //1. ID Creation
+        socket.on ('idCreated', function (data) {
+            if (mId == null){
+                mId = data;
+                //1. Informar al cliente que ya puede funcionar.
+                mCanUpdate = true;
+                //2. Instanciar el objeto de player en el World con el ID del server
+                mWorldReference.instantiatePlayer(mId);
+            }
+        });
+        //1. GET PLAYERS FROM SERVER
+        socket.on ('updatePlayersInClient', function (players) {
+            mWorldReference.updatePlayersInClient(players);
+        });
+
     })();
 };

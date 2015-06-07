@@ -1,24 +1,13 @@
 var NinjaFlamah = function() {
-    var mInterface = null; 
     var mWorld = null;
-    var mServer = null;
-    var mPlayers = null;    
+    var mPlayer = null;    
     
     this.update = function() {   
-        for (i = 0; i < mPlayers.length; i++) { 
-            mPlayers[i].update();
-        }    
-        mServer.update();
+        mPlayer.update();
     };
     
-        
-    (function() {      
-        mWorld = new World(); 
-        mServer = new Server(mWorld);  
-        mPlayers = [
-            new Player(mWorld, mServer, 1),
-            new Player(mWorld, mServer, 2)
-        ];    
-        
+    (function() {  
+        mWorld = new World();  
+        mPlayer = new Player(mWorld);
     })();
 };
