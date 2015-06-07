@@ -44,20 +44,19 @@ var World = function() {
             // Check for GameStart
             updateGameStart();
         }else{
-            console.log("gameFinished");
             // Finish game
-            //finishGame();
+            finishGame();
         }
 
         if (!mGameStarted) updateReadyStates();
-        //updateInterface(); // TODO: quan tot funcioni ficar la linea de dalt dins de updateInterface
+        updateInterface(); // TODO: quan tot funcioni ficar la linea de dalt dins de updateInterface
+
     };
 
     this.instantiatePlayer = function(mId){
        //create players sprites
        if (mId != 'spectator'){
             createPlayerSprite();
-            player = new Object();
             player.id = mId;
             player.readyState = false;
             player.lifes = 3;
@@ -96,7 +95,6 @@ var World = function() {
 
             // Instantiate other player
             createOtherPlayerSprite();
-            otherPlayer = new Object();
             if (mId == 'Player1'){
                 otherPlayer.id = 'Player2';
             }else if(mId == 'Player2'){
@@ -458,32 +456,57 @@ var World = function() {
 
     // Pendent Actualitzar les vides conforme les que tingui el player
     var updateInterface = function(){
-        mPlayers.forEach(function(player) {  
-            if (!mGameFinished){
-                //LIFES
-                if (player.lifes < player.lifesInterfaceNextUpdate){
-                    mInterfaceElementsContainer[mPlayers.indexOf(player)].lifes[player.lifesInterfaceNextUpdate-1].scale.setTo(0.0);
-                    player.lifesInterfaceNextUpdate--;
+        if (!mGameFinished){
+            //LIFES
+            //  player
+            if (player.lifes < player.lifesInterfaceNextUpdate){
+                if(player.id == "Player1"){
+                    mInterfaceElementsContainer[0].lifes[player.lifesInterfaceNextUpdate-1].scale.setTo(0.0);
+                }else{
+                    mInterfaceElementsContainer[1].lifes[player.lifesInterfaceNextUpdate-1].scale.setTo(0.0);
                 }
-                //KILLS
-                if (player.kills > player.killsInterfaceUpdated){
-                    mInterfaceElementsContainer[mPlayers.indexOf(player)].kills[player.kills-1].scale.setTo(1.1);
-                    player.killsInterfaceUpdated++;
-                }
-                
-            }else{ // Si s'ha acavat el joc perque han matat a algú 3 cops -> Mostro la interface de win lose
-                if (mMustDrawFinishInterface){
-                    mInterfaceElementsContainer[0].replayButton = phaser.add.button(phaser.width/2-75, phaser.height/2-200, 'replayButton', replayButtonClick, this);
-                    mInterfaceElementsContainer[0].backButton = phaser.add.button(phaser.width/2-75, phaser.height/2+20, 'backButton', backButtonClick, this);
-                    mMustDrawFinishInterface = false;
-                }
+                player.lifesInterfaceNextUpdate--;
             }
-        });
+            //  otherPlayer
+            if (otherPlayer.lifes < otherPlayer.lifesInterfaceNextUpdate){
+                if(otherPlayer.id == "Player1"){
+                    mInterfaceElementsContainer[0].lifes[otherPlayer.lifesInterfaceNextUpdate-1].scale.setTo(0.0);
+                }else{
+                    mInterfaceElementsContainer[1].lifes[otherPlayer.lifesInterfaceNextUpdate-1].scale.setTo(0.0);
+                }
+                otherPlayer.lifesInterfaceNextUpdate--;
+            }
+            //KILLS
+            //  player
+            if (player.kills > player.killsInterfaceUpdated){
+                if(player.id == "Player1"){
+                    mInterfaceElementsContainer[0].kills[player.kills-1].scale.setTo(1.1);
+                }else{
+                    mInterfaceElementsContainer[1].kills[player.kills-1].scale.setTo(1.1);
+                }
+                player.killsInterfaceUpdated++;
+            }
+            //  otherPlayer
+                //console.log("otherplayer kill:", otherPlayer.kills, "  kIU: ", otherPlayer.killsInterfaceUpdated);
+            if (otherPlayer.kills > otherPlayer.killsInterfaceUpdated){
+                if(otherPlayer.id == "Player1"){
+                    mInterfaceElementsContainer[0].kills[otherPlayer.kills-1].scale.setTo(1.1);
+                }else{
+                    mInterfaceElementsContainer[1].kills[otherPlayer.kills-1].scale.setTo(1.1);
+                }
+                otherPlayer.killsInterfaceUpdated++;
+            }
+            
+        }else{ // Si s'ha acavat el joc perque han matat a algú 3 cops -> Mostro la interface de win lose
+            if (mMustDrawFinishInterface){
+                mInterfaceElementsContainer[0].replayButton = phaser.add.button(phaser.width/2-75, phaser.height/2-200, 'replayButton', replayButtonClick, this);
+                mInterfaceElementsContainer[0].backButton = phaser.add.button(phaser.width/2-75, phaser.height/2+20, 'backButton', backButtonClick, this);
+                mMustDrawFinishInterface = false;
+            }
+        }
 
-        mPlayers.forEach(function(player) { 
-            // end game
-            if (player.gameIsFinished) mGameFinished = true;
-        });
+        // end game
+        if (player.gameIsFinished) mGameFinished = true;
     };
 
     var replayButtonClick = function(){
@@ -495,18 +518,33 @@ var World = function() {
 
     var resetInterface = function(){
         // Change property "resetGame" to true to make know to the server that player has clicked reset
-        mPlayers.forEach(function(player){ // Això quan estigui amb el server de veritat es fara nomes per 1 player, el del client
+        //mPlayers.forEach(function(player){ // Això quan estigui amb el server de veritat es fara nomes per 1 player, el del client
             player.resetGame = true;
-            resetGame();
+            console.log("reset1");
+            resetGameCalled();
             player.gameIsFinished = false;
             // Hide interface
-            mInterfaceElementsContainer[mPlayers.indexOf(player)].lifes.forEach(function(life){
-                life.scale.setTo(0.0);
-            });
-            mInterfaceElementsContainer[mPlayers.indexOf(player)].kills.forEach(function(skull){
-                skull.scale.setTo(0.0);
-            })
-        });
+            //if (player.id == "Player1"){
+                mInterfaceElementsContainer[0].lifes.forEach(function(life){
+                    life.scale.setTo(0.0);
+                });
+                mInterfaceElementsContainer[0].kills.forEach(function(skull){
+                    skull.scale.setTo(0.0);
+                })
+            //}else{
+                mInterfaceElementsContainer[1].lifes.forEach(function(life){
+                    life.scale.setTo(0.0);
+                });
+                mInterfaceElementsContainer[1].kills.forEach(function(skull){
+                    skull.scale.setTo(0.0);
+                })  
+            //}
+            
+       // });
+
+        // Player text
+        mInterfaceElementsContainer[0].text.scale.setTo(0,0);
+        mInterfaceElementsContainer[1].text.scale.setTo(0,0);
 
         // Buttons
         mInterfaceElementsContainer[0].replayButton.scale.setTo(0.0);
@@ -532,6 +570,8 @@ var World = function() {
         mInterfaceElementsContainer[0] = new Object();
         mInterfaceElementsContainer[0].sprite = mReadySprite.create(20, 25, 'red');
         mInterfaceElementsContainer[0].text = phaser.add.text(10, 0, 'Player 1:', { font: '20px Arial', fill: '#FFF' });
+        
+
         var lifes = [
             mReadySprite.create(5, 25, 'heart'),
             mReadySprite.create(37, 25, 'heart'),
@@ -558,6 +598,7 @@ var World = function() {
         mInterfaceElementsContainer[1] = new Object();
         mInterfaceElementsContainer[1].sprite = mReadySprite.create(730, 25, 'red');
         mInterfaceElementsContainer[1].text = phaser.add.text(715, 0, 'Player 2:', { font: '20px Arial', fill: '#FFF' });
+        
         lifes = [
             mReadySprite.create(764, 25, 'heart'),
             mReadySprite.create(732, 25, 'heart'),
@@ -584,8 +625,8 @@ var World = function() {
 
     var onPlayerOverlap = function(player1, player2) {
         if (!mGameFinished){
-            console.log("overlap - ", player.id, " justAttacked: ", player.sprite.justAttacked, " isAbleToMove: ", player.isAbleToMove);
-            console.log("overlap - ", otherPlayer.id, " justAttacked: ", otherPlayer.sprite.justAttacked, " isAbleToMove: ", otherPlayer.isAbleToMove);    
+            //console.log("overlap - ", player.id, " lifes: ", player.lifes, " kills: ", player.kills);
+            //console.log("overlap - ", otherPlayer.id, " lifes: ", otherPlayer.lifes, " kills: ", otherPlayer.kills);    
         }
         
         if (player.sprite.justAttacked && otherPlayer.isAbleToMove){
@@ -613,7 +654,6 @@ var World = function() {
             killer.gameIsFinished = true;
         }
         console.log(killer.id, " has killed ", killed.id )
-        //socket.emit('updatePlayerInServer', otherPlayer); // notifico de los cambios hechos en el killed para que el otro player sepa que ha muerto
         updatePlayerInServer(killed);
         console.log("send killed data");
     };
@@ -667,41 +707,47 @@ var World = function() {
 
 
     var resetGameCalled = function(){
+        player.readyState = false;
+        player.lifes = 3;
+        player.kills = 0;
+        player.isFacingRight = true;
+        player.isMovingRight = false;
+        player.isMovingLeft = false;
+        player.isMovingUp = false;
+        player.attackStartedAt = null;
+        player.killsInterfaceUpdated = 0;
+        player.gameIsFinished = false;
+        player.isAbleToMove = true;
+        player.killedAt = null;
+        player.resetGame = false;
         
-                player.readyState = false;
-                player.lifes = 3;
-                player.kills = 0;
-                player.isFacingRight = true;
-                player.isMovingRight = false;
-                player.isMovingLeft = false;
-                player.isMovingUp = false;
-                player.attackStartedAt = null;
-                player.killsInterfaceUpdated = 0;
-                player.gameIsFinished = false;
-                player.isAbleToMove = true;
-                player.killedAt = null;
-                player.resetGame = false;
-                
-                // Sprite config
-                if (player.id == "Player1") {
-                    player.sprite.position.x = 60;
-                }else if(player.id == "Player2"){
-                    player.sprite.position.x = 740;
-                    player.isFacingRight = false;
-                }
-                player.sprite.position.y = 40;
-                player.sprite.justAttacked = false;
+        // Sprite config
+        if (player.id == "Player1") {
+            player.sprite.position.x = 60;
+        }else if(player.id == "Player2"){
+            player.sprite.position.x = 740;
+            player.isFacingRight = false;
+        }
+        player.sprite.position.y = 40;
+        player.sprite.justAttacked = false;
 
-            mGameStarted = false;
-            mGameFinished = false;
-            mCanPlayDieAnimation = true;
-            mResetGameCalled = false;
+        otherPlayer.readyState = false;
+
+        updatePlayerInServer(player);
+        updatePlayerInServer(otherPlayer);
+
+        mGameStarted = false;
+        mGameFinished = false;
+        mCanPlayDieAnimation = true;
+        mResetGameCalled = false;
         
     };
 
     // Constructor
     (function() {       
         mPlayers = new Array();  
+        player = new Object();
+        otherPlayer = new Object();
         mInterfaceElementsContainer = new Array();
         addBackground();  
 
