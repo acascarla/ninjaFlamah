@@ -71,6 +71,7 @@ var World = function() {
             player.isAbleToMove = true;
             player.killedAt = null;
             player.resetGame = false;
+            player.time = null;
             
             // Sprite config
             player.sprite = mSprite;
@@ -114,6 +115,7 @@ var World = function() {
             otherPlayer.killedAt = null;
             otherPlayer.resetGame = false;
             otherPlayer.isFacingRight = true;
+            otherPlayer.time = null;
             
             // Sprite config
             otherPlayer.sprite = mSpriteOtherPlayer;
@@ -153,6 +155,7 @@ var World = function() {
         playerToServer.x = player.sprite.position.x;
         playerToServer.y = player.sprite.position.y;
         playerToServer.justAttacked = player.sprite.justAttacked;
+        playerToServer.time = player.time;
 
         return playerToServer;
     }
@@ -198,6 +201,7 @@ var World = function() {
                 player.gameIsFinished = serverPlayers[me].gameIsFinished;
                 mGameFinished = player.gameIsFinished;
             }
+            player.time = serverPlayers[me].time;
         }
     };
 
@@ -247,10 +251,10 @@ var World = function() {
         if (player.isAbleToMove && !mGameFinished){
             if (player.isFacingRight){
                 player.sprite.animations.play('attackRight');
-                player.attackStartedAt = phaser.time.now;
+                player.attackStartedAt = player.time;
             }else if(!player.isFacingRight){
                 player.sprite.animations.play('attackLeft');
-                player.attackStartedAt = phaser.time.now;
+                player.attackStartedAt = player.time;
             }
             player.sprite.justAttacked = true;
         }
@@ -280,14 +284,14 @@ var World = function() {
         if (player.isAbleToMove){ // Moviment normal
             if (player.isMovingLeft){
                 player.sprite.body.velocity.x = -490;
-                if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('left');
+                if (player.time - player.attackStartedAt > 100) player.sprite.animations.play('left');
                 player.isFacingRight = false;
             }else if(player.isMovingRight){
                 player.sprite.body.velocity.x = 490;
-                if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('right');
+                if (player.time - player.attackStartedAt > 100) player.sprite.animations.play('right');
                 player.isFacingRight = true;
             }else{
-                if (phaser.time.now - player.attackStartedAt > 100) onNoDirectionPressed();
+                if (player.time - player.attackStartedAt > 100) onNoDirectionPressed();
             }
             if (player.isMovingUp){
                 if(player.sprite.body.touching.down) {
@@ -297,13 +301,13 @@ var World = function() {
             }
             if (!player.sprite.body.touching.down){
                 if (player.isFacingRight){
-                    if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('jumpRight');
+                    if (player.time - player.attackStartedAt > 100) player.sprite.animations.play('jumpRight');
                 }else{
-                    if (phaser.time.now - player.attackStartedAt > 100) player.sprite.animations.play('jumpLeft');
+                    if (player.time - player.attackStartedAt > 100) player.sprite.animations.play('jumpLeft');
                 }
             }
         }else{ // lógica de quan et maten
-            if (phaser.time.now - player.killedAt < 1000){
+            if (player.time - player.killedAt < 1000){
                 if (mCanPlayDieAnimation){ 
                     if (player.isFacingRight) player.sprite.animations.play('dieRight');
                     if (!player.isFacingRight) player.sprite.animations.play('dieLeft');
@@ -325,7 +329,7 @@ var World = function() {
         }
         
         //finish attack - per saber que l'atack ja s'ha realitzat
-        if (phaser.time.now - player.attackStartedAt > 10){
+        if (player.time - player.attackStartedAt > 10){
             player.sprite.justAttacked = false;
         }
     }
@@ -357,7 +361,7 @@ var World = function() {
                 }
             }
         }else{ // lógica de quan et maten
-            if (phaser.time.now - otherPlayer.killedAt < 1000){
+            if (otherPlayer.time - otherPlayer.killedAt < 1000){
                 if (mCanPlayDieAnimation){ 
                     if (otherPlayer.isFacingRight) otherPlayer.sprite.animations.play('dieRight');
                     if (!otherPlayer.isFacingRight) otherPlayer.sprite.animations.play('dieLeft');
@@ -513,6 +517,10 @@ var World = function() {
         resetInterface();
     };
     var backButtonClick = function(){
+        // TODO: fer que quan el tio tiri enrere es quedi el joc be, perque ara quan tornes a donar a connect no reconecta, has de fer f5
+        var simplePlayer = parsePlayerForServer(player);
+        socket.emit('goBackMenu',simplePlayer);
+        phaser.state.start('menu');
         console.log("click back");
     };
 
@@ -646,7 +654,7 @@ var World = function() {
     var killSomeOne = function(killer, killed){
         killed.lifes--;
         killer.kills++;
-        killed.killedAt = phaser.time.now;
+        killed.killedAt = killed.time;
         killed.isAbleToMove = false;
         if (killed.lifes == 0){
             mGameFinished = true;
@@ -696,7 +704,7 @@ var World = function() {
     };
 
     var finishGame = function(){
-        if (phaser.time.now - player.killedAt < 1000){
+        if (player.time - player.killedAt < 1000){
             if (mCanPlayDieAnimation){ 
                 if (player.isFacingRight) player.sprite.animations.play('dieRight');
                 if (!player.isFacingRight) player.sprite.animations.play('dieLeft');
